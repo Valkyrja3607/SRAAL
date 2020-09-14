@@ -92,7 +92,7 @@ class VAE(nn.Module):
         return self.stl(z)
 
 
-# 次はここから(OUIも作る)
+# 次はここから(OUIも作る(disicriminator内につくる？))
 class Discriminator(nn.Module):
     """Adversary architecture(Discriminator) for WAE-GAN."""
 
