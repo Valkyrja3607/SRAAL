@@ -84,14 +84,18 @@ class Solver:
 
             # VAE step
             for count in range(self.args.num_vae_steps):
-                recon, z, mu, logvar = vae(labeled_imgs)
+                recon, y, z, mu, logvar = vae(labeled_imgs)
                 unsup_loss = self.vae_loss(
                     labeled_imgs, recon, mu, logvar, self.args.beta
                 )
-                unlab_recon, unlab_z, unlab_mu, unlab_logvar = vae(unlabeled_imgs)
+                unlab_recon, unlab_y, unlab_z, unlab_mu, unlab_logvar = vae(
+                    unlabeled_imgs
+                )
                 transductive_loss = self.vae_loss(
                     unlabeled_imgs, unlab_recon, unlab_mu, unlab_logvar, self.args.beta
                 )
+                # 分類だけ（だと思う）
+                stl_loss = self.ce_loss(y, labels)
 
                 labeled_preds = discriminator(mu)
                 unlabeled_preds = discriminator(unlab_mu)
@@ -109,6 +113,7 @@ class Solver:
                 total_vae_loss = (
                     unsup_loss
                     + transductive_loss
+                    + stl_loss
                     + self.args.adversary_param * dsc_loss
                 )
                 optim_vae.zero_grad()
@@ -224,3 +229,4 @@ class Solver:
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         KLD = KLD * beta
         return MSE + KLD
+

@@ -129,8 +129,7 @@ def main(args):
             querry_dataloader,
             val_dataloader,
             task_model,
-            uir,
-            stl,
+            vae,
             discriminator,
             unlabeled_dataloader,
         )
