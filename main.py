@@ -111,8 +111,8 @@ def main(args):
         # need to retrain all the models on the new images
         # re initialize and retrain the models
         task_model = vgg.vgg16_bn(num_classes=args.num_classes)
-        uir = model.UIR(args.latent_dim)
-        stl = model.STL(args.latent_dim)
+        vae = model.VAE(args.latent_dim)
+        oui = model.OUI(args.num_classes)
         discriminator = model.Discriminator(args.latent_dim)
 
         unlabeled_indices = np.setdiff1d(list(all_indices), current_indices)
@@ -125,11 +125,12 @@ def main(args):
         )
 
         # train the models on the current data
-        acc, vae, discriminator = solver.train(
+        acc, vae, oui, discriminator = solver.train(
             querry_dataloader,
             val_dataloader,
             task_model,
             vae,
+            oui,
             discriminator,
             unlabeled_dataloader,
         )

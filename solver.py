@@ -37,6 +37,7 @@ class Solver:
         val_dataloader,
         task_model,
         vae,
+        oui,
         discriminator,
         unlabeled_dataloader,
     ):
@@ -54,6 +55,7 @@ class Solver:
         optim_discriminator = optim.Adam(discriminator.parameters(), lr=5e-4)
 
         vae.train()
+        oui.train()
         discriminator.train()
         task_model.train()
 
@@ -130,14 +132,24 @@ class Solver:
                         unlabeled_imgs = unlabeled_imgs.cuda()
                         labels = labels.cuda()
 
+            # 次はここから（OUIの学習　事前にやるやつ）
             # Discriminator step
             for count in range(self.args.num_adv_steps):
                 with torch.no_grad():
-                    _, _, mu, _ = vae(labeled_imgs)
-                    _, _, unlab_mu, _ = vae(unlabeled_imgs)
+                    _, _, _, mu, _ = vae(labeled_imgs)
+                    _, _, _, unlab_mu, _ = vae(unlabeled_imgs)
 
                 labeled_preds = discriminator(mu)
                 unlabeled_preds = discriminator(unlab_mu)
+                v = oui(labeled_imgs)
+                v_max = torch.max(v).item()
+                v_ = torch.tensor(
+                    [(1 - v_max) / (self.num_class - 1)], dtype=torch.float64
+                )
+                var_v = torch.var(v).item()
+                min_var = torch.var(v_).item()
+                indicator = 1 - min_var / var_v * v_max
+                return indicator
 
                 lab_real_preds = torch.ones(labeled_imgs.size(0))
                 unlab_fake_preds = torch.zeros(unlabeled_imgs.size(0))
@@ -185,7 +197,7 @@ class Solver:
             best_model = best_model.cuda()
 
         final_accuracy = self.test(best_model)
-        return final_accuracy, vae, discriminator
+        return final_accuracy, vae, oui, discriminator
 
     def sample_for_labeling(self, vae, discriminator, unlabeled_dataloader):
         querry_indices = self.sampler.sample(
