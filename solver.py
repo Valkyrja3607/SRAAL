@@ -163,6 +163,7 @@ class Solver:
                     lab_real_preds = lab_real_preds.cuda()
                     unlab_fake_preds = unlab_fake_preds.cuda()
 
+                # 次はここから(なんかバグる)
                 dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
                     unlabeled_preds, unlab_fake_preds
                 )

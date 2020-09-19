@@ -17,7 +17,7 @@ class View(nn.Module):
 # out=(in+2p-ks)/s+1
 class VAE(nn.Module):
     def __init__(self, z_dim=32, nc=3):
-        super(UIR, self).__init__()
+        super(VAE, self).__init__()
         self.z_dim = z_dim
         self.nc = nc
         self.encoder = nn.Sequential(
@@ -38,7 +38,7 @@ class VAE(nn.Module):
 
         self.fc_mu = nn.Linear(1024 * 2 * 2, z_dim)  # B, z_dim
         self.fc_logvar = nn.Linear(1024 * 2 * 2, z_dim)  # B, z_dim
-        self.uir = nn.Sequential(
+        self.decoder = nn.Sequential(
             nn.Linear(z_dim, 1024 * 4 * 4),  # B, 1024*8*8
             View((-1, 1024, 4, 4)),  # B, 1024,  8,  8
             nn.ConvTranspose2d(1024, 512, 4, 2, 1, bias=False),  # B,  512, 16, 16
@@ -69,7 +69,7 @@ class VAE(nn.Module):
         z = self._encode(x)
         mu, logvar = self.fc_mu(z), self.fc_logvar(z)
         z = self.reparameterize(mu, logvar)
-        x_recon = self._uir(z)
+        x_recon = self._decode(z)
         y = self._stl(z)
 
         return x_recon, y, z, mu, logvar
@@ -85,7 +85,7 @@ class VAE(nn.Module):
     def _encode(self, x):
         return self.encoder(x)
 
-    def _uir(self, z):
+    def _decode(self, z):
         return self.decoder(z)
 
     def _stl(self, z):
