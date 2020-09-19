@@ -112,7 +112,6 @@ def main(args):
         # re initialize and retrain the models
         task_model = vgg.vgg16_bn(num_classes=args.num_classes)
         vae = model.VAE(args.latent_dim)
-        oui = model.OUI(args.num_classes)
         discriminator = model.Discriminator(args.latent_dim)
 
         unlabeled_indices = np.setdiff1d(list(all_indices), current_indices)
@@ -125,12 +124,11 @@ def main(args):
         )
 
         # train the models on the current data
-        acc, vae, oui, discriminator = solver.train(
+        acc, vae, discriminator = solver.train(
             querry_dataloader,
             val_dataloader,
             task_model,
             vae,
-            oui,
             discriminator,
             unlabeled_dataloader,
         )

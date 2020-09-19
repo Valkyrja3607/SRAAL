@@ -92,40 +92,6 @@ class VAE(nn.Module):
         return self.stl(z)
 
 
-# LeNet-5
-class OUI(nn.Module):
-    def __init__(self, num_class=10):
-        super().__init__()
-        self.num_class = num_class
-        self.layers = nn.Sequential(
-            nn.Conv2d(3, 16, 3, 1, 1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(16, 32, 3, 1, 1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),
-            nn.Conv2d(32, 64, 3, 1, 1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, 2),
-            View((-1, 64 * 4 * 4)),
-            nn.Linear(64 * 4 * 4, 500),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(500, num_class),
-            # nn.Softmax(dim=1),
-        )
-
-        # 重みの初期化(weight init)
-        for m in self.layers.children():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
-            if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight)
-
-    def forward(self, x):
-        return self.layers(x)
-
-
 # 次はここから（OUIの結果を使えるようにする）
 class Discriminator(nn.Module):
     """Adversary architecture(Discriminator) for WAE-GAN."""
