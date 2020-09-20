@@ -41,6 +41,9 @@ class Solver:
         v_ = torch.tensor(v__)  # [128,10]
         var_v = torch.var(v, 1)
         min_var = torch.var(v_, 1)
+        if self.args.cuda:
+            var_v = var_v.cuda()
+            min_var = min_var.cuda()
         indicator = 1 - min_var / var_v * v_max  # [128]
         return indicator.detach()
 
