@@ -42,7 +42,7 @@ class Solver:
         var_v = torch.var(v, 1)
         min_var = torch.var(v_, 1)
         indicator = 1 - min_var / var_v * v_max  # [128]
-        return indicator
+        return indicator.detach()
 
     def train(
         self,
