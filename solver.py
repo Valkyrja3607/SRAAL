@@ -123,7 +123,8 @@ class Solver:
                     lab_real_preds = lab_real_preds.cuda()
                     unlab_real_preds = unlab_real_preds.cuda()
 
-                dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                # dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                dsc_loss = self.mse_loss(labeled_preds, lab_real_preds) + self.mse_loss(
                     unlabeled_preds, unlab_real_preds
                 )
                 total_vae_loss = (
@@ -166,7 +167,8 @@ class Solver:
                     lab_real_preds = lab_real_preds.cuda()
                     unlab_fake_preds = unlab_fake_preds.cuda()
 
-                dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                # dsc_loss = self.bce_loss(labeled_preds, lab_real_preds) + self.bce_loss(
+                dsc_loss = self.mse_loss(labeled_preds, lab_real_preds) + self.mse_loss(
                     unlabeled_preds, unlab_fake_preds
                 )
 
