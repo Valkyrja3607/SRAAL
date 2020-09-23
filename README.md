@@ -6,12 +6,6 @@
 - Python 3.8
 - CPU compatible but NVIDIA GPU + CUDA CuDNN is highly recommended.
 
-### Installation
-The required Python3 packages can be installed using 
-```
-pip3 install -r requirements.txt
-```
-
 ### Experiments and Visualization
 The code can simply be run using 
 ```
