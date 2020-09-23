@@ -3,7 +3,7 @@
 
 ### Prerequisites:
 - Linux or macOS
-- Python 3.5/3.6
+- Python 3.8
 - CPU compatible but NVIDIA GPU + CUDA CuDNN is highly recommended.
 
 ### Installation
