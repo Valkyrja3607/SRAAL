@@ -32,6 +32,7 @@ class Solver:
                     yield img
 
     def OUI(self, v):
+        v = nn.functional.softmax(v, dim=1)
         v_max, idx = torch.max(v, 1)
         bc = v.size()[0]
         c = v.size()[1]

@@ -111,7 +111,7 @@ def main(args):
         # need to retrain all the models on the new images
         # re initialize and retrain the models
         task_model = vgg.vgg16_bn(num_classes=args.num_classes)
-        vae = model.VAE(args.latent_dim)
+        vae = model.VAE(args.latent_dim, class_num=args.num_classes)
         discriminator = model.Discriminator(args.latent_dim)
 
         unlabeled_indices = np.setdiff1d(list(all_indices), current_indices)

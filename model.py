@@ -16,10 +16,11 @@ class View(nn.Module):
 # conv 入力, 出力, kernel_size, stride ,padding
 # out=(in+2p-ks)/s+1
 class VAE(nn.Module):
-    def __init__(self, z_dim=32, nc=3):
+    def __init__(self, z_dim=32, nc=3, class_num=10):
         super(VAE, self).__init__()
         self.z_dim = z_dim
         self.nc = nc
+        self.class_num = class_num
         self.encoder = nn.Sequential(
             nn.Conv2d(nc, 128, 4, 2, 1, bias=False),  # B,  128, 32, 32
             nn.BatchNorm2d(128),
@@ -54,7 +55,7 @@ class VAE(nn.Module):
         )
         # ここからはzからアノテーション情報生成するやつ
         # CIFAR10の分類
-        self.stl = nn.Sequential(nn.Linear(z_dim, 10))
+        self.stl = nn.Sequential(nn.Linear(z_dim, self.class_num))
         self.weight_init()
 
     def weight_init(self):
@@ -92,7 +93,6 @@ class VAE(nn.Module):
         return self.stl(z)
 
 
-# 次はここから（OUIの結果を使えるようにする）
 class Discriminator(nn.Module):
     """Adversary architecture(Discriminator) for WAE-GAN."""
 
