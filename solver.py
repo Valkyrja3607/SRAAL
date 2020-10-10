@@ -19,7 +19,7 @@ class Solver:
         self.mse_loss = nn.MSELoss()
         self.ce_loss = nn.CrossEntropyLoss()
 
-        self.sampler = sampler.AdversarySampler(self.args.budget)
+        self.sampler = sampler.AdversarySampler(self.args.budget, self.args)
 
     def read_data(self, dataloader, labels=True):
         if labels:
@@ -117,8 +117,11 @@ class Solver:
                 labeled_preds = discriminator(mu)
                 unlabeled_preds = discriminator(unlab_mu)
 
-                lab_real_preds = torch.ones(labeled_imgs.size(0))
-                unlab_real_preds = torch.ones(unlabeled_imgs.size(0))
+                # discriminatorにラベル付きだと思わせる(理想のdiscriminatorの出力は0)
+                # lab_real_preds = torch.ones(labeled_imgs.size(0))
+                # unlab_real_preds = torch.ones(unlabeled_imgs.size(0))
+                lab_real_preds = torch.zeros(labeled_imgs.size(0))
+                unlab_real_preds = torch.zeros(unlabeled_imgs.size(0))
 
                 if self.args.cuda:
                     lab_real_preds = lab_real_preds.cuda()
@@ -156,12 +159,12 @@ class Solver:
 
                 labeled_preds = discriminator(mu)
                 unlabeled_preds = discriminator(unlab_mu)
-                v_l = task_model(labeled_imgs)
+                # v_l = task_model(labeled_imgs)
                 v_u = task_model(unlabeled_imgs)
-                lab_real_preds = self.OUI(v_l)
+                # lab_real_preds = self.OUI(v_l)
                 unlab_fake_preds = self.OUI(v_u)
 
-                # lab_real_preds = torch.ones(labeled_imgs.size(0))
+                lab_real_preds = torch.zeros(labeled_imgs.size(0))
                 # unlab_fake_preds = torch.zeros(unlabeled_imgs.size(0))
 
                 if self.args.cuda:
@@ -194,6 +197,12 @@ class Solver:
                 print(
                     "Current discriminator model loss: {:.4f}".format(dsc_loss.item())
                 )
+                print("dl,du:", labeled_preds[0].item(), unlabeled_preds[0].item())
+                print("ol,ou:", lab_real_preds[0].item(), unlab_fake_preds[0].item())
+
+                # print(unlabeled_preds[:5])
+                # print(lab_real_preds[:5])
+                # print(unlab_fake_preds[:5])
 
             if iter_count % 1000 == 0:
                 acc = self.validate(task_model, val_dataloader)
@@ -210,9 +219,16 @@ class Solver:
         final_accuracy = self.test(best_model)
         return final_accuracy, vae, discriminator
 
-    def sample_for_labeling(self, vae, discriminator, unlabeled_dataloader):
+    def sample_for_labeling(
+        self, vae, discriminator, unlabeled_dataloader, querry_dataloader, t_data
+    ):
         querry_indices = self.sampler.sample(
-            vae, discriminator, unlabeled_dataloader, self.args.cuda
+            vae,
+            discriminator,
+            unlabeled_dataloader,
+            querry_dataloader,
+            t_data,
+            self.args.cuda,
         )
 
         return querry_indices

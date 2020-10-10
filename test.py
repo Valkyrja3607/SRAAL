@@ -14,7 +14,7 @@ import vgg
 
 # import dpn
 # import regnet
-import resnet
+# import resnet
 from solver import Solver
 from utils import *
 import arguments
@@ -115,7 +115,7 @@ def main(args):
         # need to retrain all the models on the new images
         # re initialize and retrain the models
         task_model = vgg.vgg16_bn(num_classes=args.num_classes)
-        # task_model = resnet.ResNet18()
+        # task_model = resnet.ResNet101()
         vae = model.VAE(args.latent_dim, class_num=args.num_classes)
         discriminator = model.Discriminator(args.latent_dim)
 
@@ -129,14 +129,7 @@ def main(args):
         )
 
         # train the models on the current data
-        acc, vae, discriminator = solver.train(
-            querry_dataloader,
-            val_dataloader,
-            task_model,
-            vae,
-            discriminator,
-            unlabeled_dataloader,
-        )
+        acc = 1
 
         print(
             "Final accuracy with {}% of data is: {:.2f}".format(int(split * 100), acc)
@@ -144,7 +137,7 @@ def main(args):
         accuracies.append(acc)
 
         sampled_indices = solver.sample_for_labeling(
-            vae, discriminator, unlabeled_dataloader, querry_dataloader, train_dataset
+            vae, discriminator, unlabeled_dataloader, querry_dataloader
         )
         current_indices = list(current_indices) + list(sampled_indices)
         sampler = data.sampler.SubsetRandomSampler(current_indices)

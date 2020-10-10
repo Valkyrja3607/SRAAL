@@ -7,6 +7,7 @@ from torch import nn
 import vgg
 import matplotlib.pyplot as plt
 
+n = float(input("split:"))
 
 batch_size = 128
 data_path = "./data"
@@ -53,85 +54,67 @@ optimizer = torch.optim.SGD(
     task_model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9
 )
 criterion = nn.CrossEntropyLoss(reduction="mean")
-l = []
-splits = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
+splits = [n]
 for split in splits:
-    ans = 0
-    for i in range(5):
-        train_dataset, val_dataset = torch.utils.data.random_split(
-            trainset, [int(num_images * split), num_images-int(num_images * split)]
-        )
+    train_dataset, val_dataset = torch.utils.data.random_split(
+        trainset, [int(num_images * split), num_images - int(num_images * split)]
+    )
 
-        trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        # train
-        print("train")
-        model = model.train()
-        loss_train_list = []
-        acc_train_list = []
-        total, tp = 0, 0
-        epoch = 40
-        for i in range(epoch):
-            acc_count = 0
-            for j, (x, y) in enumerate(trainloader):
-                x = x.to(device)
-                y = y.to(device)
-                # 体格行列でone-hotに変換
-                # y=torch.eye(10)[y].to(device)
-
-                # 推定
-                predict = model.forward(x)
-
-                # loss(bachの平均)
-                loss = criterion(predict, y)
-                # eps=1e-7
-                # loss=-torch.mean(y*torch.log(predict+eps))
-                loss_train_list.append(loss.item())
-                # acc
-                pre = predict.argmax(1).to(device)
-                total += y.shape[0]
-                tp += (y == pre).sum().item()
-                # 勾配初期化
-                optimizer.zero_grad()
-                # 勾配計算(backward)
-                loss.backward()
-                # パラメータ更新
-                optimizer.step()
-
-                # 進捗報告
-                if j % 100 == 0:
-                    print(
-                        "%05dsplit,%03depoch, %05d, loss=%.5f, acc=%.5f"
-                        % (split, i, j, loss.item(), tp / total)
-                    )
-            acc = tp / total
-            acc_train_list.append(acc)
-        model = model.eval()
-        total, tp = 0, 0
-        for (x, y) in testloader:
+    trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    # train
+    print("train")
+    model = model.train()
+    loss_train_list = []
+    acc_train_list = []
+    total, tp = 0, 0
+    epoch = 80
+    for i in range(epoch):
+        acc_count = 0
+        for j, (x, y) in enumerate(trainloader):
             x = x.to(device)
+            y = y.to(device)
+            # 体格行列でone-hotに変換
+            # y=torch.eye(10)[y].to(device)
+
             # 推定
             predict = model.forward(x)
-            pre = predict.argmax(1).to("cpu")  # one-hotからスカラ―値
 
-            # answer count
+            # loss(bachの平均)
+            loss = criterion(predict, y)
+            # eps=1e-7
+            # loss=-torch.mean(y*torch.log(predict+eps))
+            loss_train_list.append(loss.item())
+            # acc
+            pre = predict.argmax(1).to(device)
             total += y.shape[0]
             tp += (y == pre).sum().item()
+            # 勾配初期化
+            optimizer.zero_grad()
+            # 勾配計算(backward)
+            loss.backward()
+            # パラメータ更新
+            optimizer.step()
+            """
+            # 進捗報告
+            if j % 100 == 0:
+                print(
+                    "%.01fsplit,%03depoch, %05d, loss=%.5f, acc=%.5f"
+                    % (split, i, j, loss.item(), tp / total)
+                )"""
         acc = tp / total
-        print("split", split)
-        print("final accuracy=%.3f" % acc)
-        ans += acc
-        task_model = vgg.vgg16_bn(num_classes=num_classes)
+        acc_train_list.append(acc)
+    model = model.eval()
+    total, tp = 0, 0
+    for (x, y) in testloader:
+        x = x.to(device)
+        # 推定
+        predict = model.forward(x)
+        pre = predict.argmax(1).to("cpu")  # one-hotからスカラ―値
 
-        # GPU or CPU の判別
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(device)
+        # answer count
+        total += y.shape[0]
+        tp += (y == pre).sum().item()
+    acc = tp / total
+    print("split", split)
+    print("final accuracy=%.3f" % acc)
 
-        # modelの定義
-        model = task_model.to(device)
-        optimizer = torch.optim.SGD(
-            task_model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9
-        )
-        criterion = nn.CrossEntropyLoss(reduction="mean")
-    l.append(split)
-    l.append(ans / 5)
-print(l)
