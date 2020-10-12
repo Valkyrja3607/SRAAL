@@ -19,7 +19,7 @@ class Solver:
         self.mse_loss = nn.MSELoss()
         self.ce_loss = nn.CrossEntropyLoss()
 
-        self.sampler = sampler.AdversarySampler(self.args.budget, self.args)
+        self.sampler = sampler.AdversarySampler(self.args.budget, self.args.batch_size)
 
     def read_data(self, dataloader, labels=True):
         if labels:

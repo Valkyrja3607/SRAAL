@@ -4,11 +4,11 @@ import numpy as np
 
 
 class AdversarySampler:
-    def __init__(self, budget, args):
+    def __init__(self, budget, batch_size):
         self.budget = budget
-        self.args = args
+        self.batch_size = batch_size
 
-    def distance(self, mu, l_mu):
+    def _distance(self, mu, l_mu):
         dif = l_mu - mu
         dis = dif ** 2
         res = dis.sum(dim=1).min()
@@ -41,7 +41,7 @@ class AdversarySampler:
         querry_indices = np.asarray(all_indices)[querry_indices]
         sampler = data.sampler.SubsetRandomSampler(querry_indices)
         k_data = data.DataLoader(
-            t_data, sampler=sampler, batch_size=self.args.batch_size, drop_last=False
+            t_data, sampler=sampler, batch_size=self.batch_size, drop_last=False
         )
         # k-center
         dis_l = []
@@ -62,7 +62,7 @@ class AdversarySampler:
             l_mu.extend(l_mu_pred)
         l_mu = torch.stack(l_mu)
         for mu, ind in zip(u_mu, all_indices):
-            mu_d = self.distance(mu, l_mu)
+            mu_d = self._distance(mu, l_mu)
             dis_l.append((mu_d, ind.item()))
         dis_l.sort(reverse=True)
         dis_l = dis_l[: int(self.budget)]
