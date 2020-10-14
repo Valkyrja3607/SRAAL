@@ -14,7 +14,7 @@ import vgg
 
 # import dpn
 # import regnet
-import resnet
+# import resnet
 from solver import Solver
 from utils import *
 import arguments
