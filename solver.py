@@ -99,6 +99,31 @@ class Solver:
             task_loss.backward()
             optim_task_model.step()
 
+            if iter_count % 100 == 0:
+                print("Current training iteration: {}".format(iter_count))
+                print("Current task model loss: {:.4f}".format(task_loss.item()))
+
+            if iter_count % 1000 == 0:
+                acc = self.validate(task_model, val_dataloader)
+                if acc > best_acc:
+                    best_acc = acc
+                    best_model = copy.deepcopy(task_model)
+
+                print("current step: {} acc: {}".format(iter_count, acc))
+                print("best acc: ", best_acc)
+
+        for iter_count in range(self.args.train_iterations):
+            if iter_count is not 0 and iter_count % lr_change == 0:
+                for param in optim_task_model.param_groups:
+                    param["lr"] = param["lr"] / 10
+            labeled_imgs, labels = next(labeled_data)
+            unlabeled_imgs = next(unlabeled_data)
+
+            if self.args.cuda:
+                labeled_imgs = labeled_imgs.cuda()
+                unlabeled_imgs = unlabeled_imgs.cuda()
+                labels = labels.cuda()
+
             # VAE step
             for count in range(self.args.num_vae_steps):
                 recon, y, z, mu, logvar = vae(labeled_imgs)
@@ -192,7 +217,7 @@ class Solver:
 
             if iter_count % 100 == 0:
                 print("Current training iteration: {}".format(iter_count))
-                print("Current task model loss: {:.4f}".format(task_loss.item()))
+                # print("Current task model loss: {:.4f}".format(task_loss.item()))
                 print("Current vae model loss: {:.4f}".format(total_vae_loss.item()))
                 print(
                     "Current discriminator model loss: {:.4f}".format(dsc_loss.item())
