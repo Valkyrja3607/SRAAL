@@ -7,8 +7,6 @@ from torch import nn
 import vgg
 import matplotlib.pyplot as plt
 
-n = float(input("split:"))
-
 batch_size = 128
 data_path = "./data"
 
@@ -41,20 +39,11 @@ class View(nn.Module):
         return tensor.view(self.size)
 
 
-task_model = vgg.vgg16_bn(num_classes=num_classes)
-
-
 # GPU or CPU の判別
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
-# modelの定義
-model = task_model.to(device)
-optimizer = torch.optim.SGD(
-    task_model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9
-)
-criterion = nn.CrossEntropyLoss(reduction="mean")
-splits = [n]
+splits = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]
 for split in splits:
     train_dataset, val_dataset = torch.utils.data.random_split(
         trainset, [int(num_images * split), num_images - int(num_images * split)]
@@ -63,11 +52,16 @@ for split in splits:
     trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     # train
     print("train")
+    task_model = vgg.vgg16_bn(num_classes=num_classes)
+    model = task_model.to(device)
+    optimizer = torch.optim.SGD(task_model.parameters(), lr=0.01, weight_decay=5e-4, momentum=0.9)
+    criterion = nn.CrossEntropyLoss(reduction="mean")
     model = model.train()
+
     loss_train_list = []
     acc_train_list = []
     total, tp = 0, 0
-    epoch = 80
+    epoch = 100
     for i in range(epoch):
         acc_count = 0
         for j, (x, y) in enumerate(trainloader):

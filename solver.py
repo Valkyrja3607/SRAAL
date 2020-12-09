@@ -30,7 +30,7 @@ class Solver:
             while True:
                 for img, _, _ in dataloader:
                     yield img
-
+    """
     def OUI(self, v):
         v = nn.functional.softmax(v, dim=1)
         v_max, idx = torch.max(v, 1)
@@ -47,6 +47,15 @@ class Solver:
             min_var = min_var.cuda()
         indicator = 1 - min_var / var_v * v_max  # [128]
         return indicator.detach()
+    """
+    def OUI(self, v):
+        v = nn.functional.softmax(v, dim=1)
+        v_max, idx = torch.max(v, 1)
+        c = v.size()[1]
+        min_var = ((v_max - 1 / c) ** 2 + (c - 1) * (1 / c - (1 - v_max) / (c - 1)) ** 2) / c
+        var_v = torch.var(v, 1)
+        indicator = 1 - min_var / var_v * v_max
+        return indicator
 
     def train(
         self,
@@ -136,7 +145,6 @@ class Solver:
                 transductive_loss = self.vae_loss(
                     unlabeled_imgs, unlab_recon, unlab_mu, unlab_logvar, self.args.beta
                 )
-                # 分類だけ（だと思う）
                 stl_loss = self.ce_loss(y, labels)
 
                 labeled_preds = discriminator(mu)
@@ -219,11 +227,10 @@ class Solver:
                 print("Current training iteration: {}".format(iter_count))
                 # print("Current task model loss: {:.4f}".format(task_loss.item()))
                 print("Current vae model loss: {:.4f}".format(total_vae_loss.item()))
-                print(
-                    "Current discriminator model loss: {:.4f}".format(dsc_loss.item())
-                )
-                print("dl,du:", labeled_preds[0].item(), unlabeled_preds[0].item())
-                print("ol,ou:", lab_real_preds[0].item(), unlab_fake_preds[0].item())
+                print("Current discriminator model loss: {:.4f}".format(dsc_loss.item()))
+
+                # print("dl,du:", labeled_preds[0].item(), unlabeled_preds[0].item())
+                # print("ol,ou:", lab_real_preds[0].item(), unlab_fake_preds[0].item())
 
                 # print(unlabeled_preds[:5])
                 # print(lab_real_preds[:5])

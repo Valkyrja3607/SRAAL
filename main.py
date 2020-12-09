@@ -142,6 +142,7 @@ def main(args):
             "Final accuracy with {}% of data is: {:.2f}".format(int(split * 100), acc)
         )
         accuracies.append(acc)
+        print(accuracies)
 
         sampled_indices = solver.sample_for_labeling(
             vae, discriminator, unlabeled_dataloader, querry_dataloader, train_dataset
