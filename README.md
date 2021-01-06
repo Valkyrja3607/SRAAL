@@ -1,5 +1,7 @@
 # SRAAL in PyTorch
  Reproduction implementation of SRAAL([State-Relabeling Adversarial Active Learning](https://github.com/Valkyrja3607/survey/issues/4))
+ 
+### Warning: This code does not reproduce well the initialization by k-center
 
 ### Prerequisites:
 - Linux or macOS
